@@ -15,11 +15,11 @@ plt.rcParams["figure.figsize"] = (28,6)
 
 
 tifFile = "NDVI_Encrypted.tif"
+OriginalNDVIArray = tifffile.imread("NDVI_Original.tif")
 
-
-ndviArray = tifffile.imread(tifFile)
-ndviFlat = ndviArray.flatten()
-rows, cols = ndviArray.shape
+EncryptedNdviArray = tifffile.imread(tifFile)
+EncryptedNdviFlat = EncryptedNdviArray.flatten()
+rows, cols = EncryptedNdviArray.shape
 arrayLength = rows*cols
 
 
@@ -58,48 +58,57 @@ kFloat = kFloatRange(hash_0to1)
 LogisticMap = Logistic(float_mu, hash_0to1)
 ChebyshevMap = Chebyshev(kFloat, hash_0to1)
 HybridMap = Hybrid(LogisticMap, ChebyshevMap)
-encryptedNDVI = ndviFlat
+
+# Generate blank decrypted NDVI.
+decryptedNDVI = np.full(arrayLength, np.nan)
 
 
 for i in range(0, arrayLength):
-    float1 = ndviFlat[i]
+    float1 = EncryptedNdviFlat[i]
     float2 = HybridMap[i]
     # Convert floats to 32-bit binary representations
     if np.isnan(float1):
-        encryptedNDVI[i]=np.nan
         continue
     binary1 = int(bin(convert2Int(float1)),2)
     binary2 = int(bin(convert2Int(float2)),2)
     floatXor = binary1 ^ binary2
-    encryptedNDVI[i] = convertBack(floatXor)
+    decryptedNDVI[i] = convertBack(floatXor)
 
 
-plt.plot(ndviFlat[6000:6500])
-plt.savefig("NDVI_points_encry.png")
+# plt.plot(EncryptedNdviFlat[6000:6500])
+# plt.savefig("NDVI_points_encry_v2.png")
+# # plt.close()
+
+
+# plt.plot(decryptedNDVI[6000:6500])
+# plt.savefig("NDVI_Decrypted_points_V2.png")
+# # plt.close()
+
+# ndviDecryptedArray = decryptedNDVI.reshape(rows,cols)
+# tifffile.imwrite("NDVI_Decrypted.tif",ndviDecryptedArray)
+# tifffile.imwrite("NDVI_Original_Encrypted.tif",EncryptedNdviArray)
+
+
+# # Display the array as an image
+# plt.imshow(EncryptedNdviArray, cmap='viridis')  # 'viridis' is just an example colormap, you can choose another
+# plt.title('Array as Image Original Encrypted')
+# plt.colorbar()  # Add a colorbar for reference
+# plt.show()
+
+
+# # Display the array as an image
+# plt.imshow(ndviDecryptedArray, cmap='viridis')  # 'viridis' is just an example colormap, you can choose another
+# plt.title('Array as Image Decrypted')
+# plt.colorbar()  # Add a colorbar for reference
+# plt.show()
+
 # plt.close()
 
-
-plt.plot(encryptedNDVI[6000:6500])
-plt.savefig("NDVI_Encrypted_points.png")
-# plt.close()
-
-ndviEncryptedArray = encryptedNDVI.reshape(rows,cols)
-tifffile.imwrite("NDVI_Encrypted.tif",ndviEncryptedArray)
-tifffile.imwrite("NDVI_Original.tif",ndviArray)
-
-
-# Display the array as an image
-plt.imshow(ndviArray, cmap='viridis')  # 'viridis' is just an example colormap, you can choose another
-plt.title('Array as Image Original')
-plt.colorbar()  # Add a colorbar for reference
+plt.plot(decryptedNDVI- OriginalNDVIArray.flatten())
+plt.ylim(-1E-9,1E-9)
+plt.title('Difference between Decrypted Vs Original')
 plt.show()
 
-
-# Display the array as an image
-plt.imshow(ndviEncryptedArray, cmap='viridis')  # 'viridis' is just an example colormap, you can choose another
-plt.title('Array as Image Encrypted')
-plt.colorbar()  # Add a colorbar for reference
-plt.show()
-
+print("")
 
 
