@@ -27,7 +27,6 @@ def xFloatrange(hashFloat, target_range=(0, 1)):
 
 # K should be >= 2; choosing 2-9 limit arbitrarily.
 def kFloatRange(hash_0to1, target_range =(2,9)):
-    # hash_float = x0 / float(target_range[1])
     mapped_float = (target_range[1] - target_range[0]) * hash_0to1 + target_range[0]
     return mapped_float
 
